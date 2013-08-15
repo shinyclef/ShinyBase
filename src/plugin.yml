@@ -1,0 +1,23 @@
+name: ShinyBase
+main: com.hotmail.shinyclef.shinybase.ShinyBase
+version: 1.2.3
+commands:
+    shinybase:
+        description: Access features of ShinyBase plugin.
+        usage: Type "/<command> help" for a list of commands.
+        permission: rolyd.mod
+        permission-message: You don't have permission <permission>
+    rolyd:
+        description: A collection of loose ends just for rolyd.com.
+        usage: /<command> help
+        permission: rolyd.mod
+        permission-message: You don't have permission <permission>.
+
+permissions:
+    ShinyBase.*:
+        description: Gives access to all ShinyBase commands.
+        children:
+            rolyd.mod: true
+    rolyd.mod:
+        description: Administration commands for ShinyBase.
+        default: op
