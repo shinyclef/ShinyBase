@@ -1,6 +1,10 @@
 package com.hotmail.shinyclef.shinybase;
 
+import com.hotmail.shinyclef.shinybridge.ShinyBridge;
+import com.hotmail.shinyclef.shinybridge.ShinyBridgeAPI;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -13,8 +17,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class ShinyBase extends JavaPlugin
 {
+    private static ShinyBase plugin;
     private PlayerListManager playerListManager;
     private ShinyBaseAPI shinyBaseAPI;
+    private ShinyBridgeAPI shinyBridgeAPI = null;
     private Economy economy = null;
 
     private CmdExecutor commandExecutor;
@@ -22,6 +28,9 @@ public class ShinyBase extends JavaPlugin
     @Override
     public void onEnable()
     {
+        //default config
+        saveDefaultConfig();
+
         //if no economy is found, disable this plugin with a message
         if (!setupEconomy())
         {
@@ -30,8 +39,16 @@ public class ShinyBase extends JavaPlugin
             return;
         }
 
+        Plugin bridge = Bukkit.getPluginManager().getPlugin("ShinyBridge");
+        if (bridge != null)
+        {
+            ShinyBridge shinyBridge = (ShinyBridge) bridge;
+            shinyBridgeAPI = shinyBridge.getShinyBridgeAPI();
+        }
+
         playerListManager = new PlayerListManager(this);
-        shinyBaseAPI = new ShinyBaseAPI(this);
+        ModChatHandler modChatHandler = new ModChatHandler(this);
+        shinyBaseAPI = new ShinyBaseAPI(this, shinyBridgeAPI, modChatHandler);  //shinyBaseAPI constructs
         NewPlayerInteraction.setPlugin(this);
         NewPlayerInteraction.messageSetup();
         NewPlayerInteraction.setupResources();
@@ -42,12 +59,22 @@ public class ShinyBase extends JavaPlugin
         getCommand("rolyd").setExecutor(commandExecutor);
 
         CommandManager.initialize(this);
+
+        plugin = this;
     }
 
     @Override
     public void onDisable()
     {
 
+    }
+
+
+    /* Getters */
+
+    public static ShinyBase getPlugin()
+    {
+        return plugin;
     }
 
     public PlayerListManager getPlayerlistManager()

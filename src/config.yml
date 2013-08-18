@@ -1,4 +1,7 @@
 ResourceChest:
-    x: -18
+    x: -19
     y: 54
-    z: -19
+    z: -20
+
+ModChatOff:
+- shinyclef
