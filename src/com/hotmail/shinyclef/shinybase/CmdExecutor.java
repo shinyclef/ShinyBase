@@ -56,39 +56,59 @@ public class CmdExecutor implements CommandExecutor
         if (command.getName().equalsIgnoreCase("rolyd"))
         {
             //check perms
-            if (!sender.hasPermission("ShinyBase.shinybase"))
+            if (!sender.hasPermission("rolyd.mod"))
             {
                 sender.sendMessage(ChatColor.RED + "You do not have permission to do that.");
                 return true;
             }
 
-            if (args[0].equalsIgnoreCase("newaccount"))
+            switch (args[0].toLowerCase())
             {
-                //args length
-                if (args.length != 2)
-                    return false;
+                case "newaccount":
+                    return newAccount(sender, args);
 
-                //create account and notify
-                economy.createPlayerAccount(args[1]);
-                sender.sendMessage(ChatColor.GREEN + "New account created: " + ChatColor.GOLD + args[1]);
-                return true;
+                case "help":
+                    return help(sender, args);
+
+                case "permissionschangedevent":
+                    return permissionsChange(sender, args);
             }
-
-            if (args[0].equalsIgnoreCase("help"))
-            {
-                //args length
-                if (args.length != 1)
-                    return false;
-
-                //help info
-                sender.sendMessage(ChatColor.RED + "/rolyd newaccount [accountname]" + ChatColor.WHITE + " - Create a new economy account.");
-
-                return true;
-            }
-
-
         }
 
         return false;
     }
+
+    private boolean newAccount(CommandSender sender, String[] args)
+    {
+        //args length
+        if (args.length != 2)
+        {
+            return false;
+        }
+
+        //create account and notify
+        economy.createPlayerAccount(args[1]);
+        sender.sendMessage(ChatColor.GREEN + "New account created: " + ChatColor.GOLD + args[1]);
+        return true;
+    }
+
+    private boolean help(CommandSender sender, String[] args)
+    {
+        //args length
+        if (args.length != 1)
+            return false;
+
+        //help info
+        sender.sendMessage(ChatColor.RED + "/rolyd newaccount [accountname]" + ChatColor.WHITE + " - Create a new economy account.");
+
+        return true;
+    }
+
+    private boolean permissionsChange(CommandSender sender, String[] args)
+    {
+        PermissionsChangeManager.firePermissionsChangeEvent();
+        return true;
+    }
+
+
 }

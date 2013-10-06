@@ -4,9 +4,11 @@ import com.hotmail.shinyclef.shinybridge.ShinyBridge;
 import com.hotmail.shinyclef.shinybridge.ShinyBridgeAPI;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 
 /**
@@ -18,12 +20,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ShinyBase extends JavaPlugin
 {
     private static ShinyBase plugin;
-    private PlayerListManager playerListManager;
-    private ShinyBaseAPI shinyBaseAPI;
-    private ShinyBridgeAPI shinyBridgeAPI = null;
+    private static ShinyBaseAPI shinyBaseAPI;
     private Economy economy = null;
-
-    private CmdExecutor commandExecutor;
+    private PlayerListManager playerListManager;
 
     @Override
     public void onEnable()
@@ -39,26 +38,19 @@ public class ShinyBase extends JavaPlugin
             return;
         }
 
-        Plugin bridge = Bukkit.getPluginManager().getPlugin("ShinyBridge");
-        if (bridge != null)
-        {
-            ShinyBridge shinyBridge = (ShinyBridge) bridge;
-            shinyBridgeAPI = shinyBridge.getShinyBridgeAPI();
-        }
-
+        //prepare components
         playerListManager = new PlayerListManager(this);
-        ModChatHandler modChatHandler = new ModChatHandler(this);
-        shinyBaseAPI = new ShinyBaseAPI(this, shinyBridgeAPI, modChatHandler);  //shinyBaseAPI constructs
+        shinyBaseAPI = new ShinyBaseAPI(this);
+        CommandManager.initialize(this);
+        CmdExecutor commandExecutor = new CmdExecutor(this, playerListManager, economy);
+        getCommand("shinybase").setExecutor(commandExecutor);
+        getCommand("rolyd").setExecutor(commandExecutor);
+
+        //setup player interaction
         NewPlayerInteraction.setPlugin(this);
         NewPlayerInteraction.messageSetup();
         NewPlayerInteraction.setupResources();
         new EventListener(this);
-
-        commandExecutor = new CmdExecutor(this, playerListManager, economy);
-        getCommand("shinybase").setExecutor(commandExecutor);
-        getCommand("rolyd").setExecutor(commandExecutor);
-
-        CommandManager.initialize(this);
 
         plugin = this;
     }
@@ -69,27 +61,10 @@ public class ShinyBase extends JavaPlugin
 
     }
 
-
-    /* Getters */
-
-    public static ShinyBase getPlugin()
-    {
-        return plugin;
-    }
-
-    public PlayerListManager getPlayerlistManager()
-    {
-        return playerListManager;
-    }
-
-    public ShinyBaseAPI getShinyBaseAPI()
-    {
-        return shinyBaseAPI;
-    }
-
     private boolean setupEconomy()
     {
-        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        RegisteredServiceProvider<Economy> economyProvider =
+                getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null)
         {
             economy = economyProvider.getProvider();
@@ -98,4 +73,21 @@ public class ShinyBase extends JavaPlugin
         return (economy != null);
     }
 
+
+    /* Getters */
+
+    public static ShinyBase getPlugin()
+    {
+        return plugin;
+    }
+
+    public PlayerListManager getPlayerListManager()
+    {
+        return playerListManager;
+    }
+
+    public ShinyBaseAPI getShinyBaseAPI()
+    {
+        return shinyBaseAPI;
+    }
 }

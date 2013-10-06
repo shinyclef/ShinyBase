@@ -1,14 +1,11 @@
 package com.hotmail.shinyclef.shinybase;
 
 import com.hotmail.shinyclef.shinybridge.ShinyBridgeAPI;
+import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.entity.Player;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import java.util.List;
 
 /**
  * Author: ShinyClef
@@ -19,20 +16,10 @@ import java.util.List;
 public class ShinyBaseAPI
 {
     private ShinyBase p;
-    private Server s;
-    private ShinyBridgeAPI shinyBridgeAPI;
-    private boolean haveBridge = false;
-    private ModChatHandler modChatHandler;
 
-    public ShinyBaseAPI(ShinyBase plugin, ShinyBridgeAPI shinyBridgeAPI, ModChatHandler modChatHandler)
+    public ShinyBaseAPI(ShinyBase plugin)
     {
         this.p = plugin;
-        this.shinyBridgeAPI = shinyBridgeAPI;
-        if (shinyBridgeAPI != null)
-        {
-            haveBridge = true;
-        }
-        this.modChatHandler = modChatHandler;
     }
 
     /* Schedules the removal of a command and it's re-addition via a particular plugin's PluginManager.
@@ -47,7 +34,6 @@ public class ShinyBaseAPI
         private CommandModification(Plugin plugin, String cmdName, CommandExecutor executor)
         {
             this.plugin = plugin;
-            s = plugin.getServer();
             this.cmdName = cmdName;
             this.executor = executor;
         }
@@ -62,9 +48,9 @@ public class ShinyBaseAPI
 
     // -------------- Public Methods -------------- //
 
-    public boolean isExistingPlayer(String playername)
+    public boolean isExistingPlayer(String playerName)
     {
-        return p.getPlayerlistManager().getPlayers().contains(playername);
+        return p.getPlayerListManager().getPlayers().contains(playerName);
     }
 
     public void takeOverBukkitCommand(Plugin plugin, String cmdName, CommandExecutor executor)
@@ -73,79 +59,19 @@ public class ShinyBaseAPI
         plugin.getServer().getScheduler().runTaskLater(plugin, new CommandModification(plugin, cmdName, executor), 0);
     }
 
-    public void broadcastPermissionMessage(String message, String permission)
+    public String makeSentence(String[] args, int startingArg)
     {
-        //send to bridge clients if we have bridge
-        if (haveBridge)
+        int i = startingArg;
+        String sentence = "";
+
+        //put all the args starting from the 1st into string 'sentence'
+        do
         {
-            shinyBridgeAPI.broadcastMessage(message, permission, true);
+            sentence = sentence + args[i] + " ";
+            i++;
         }
-        else
-        {
-            //standard broadcast
-            s.broadcast(message, permission);
-        }
-    }
+        while (i < args.length);
 
-    public void sendMessage(String playerName, String message)
-    {
-        //standard send
-        if (s.getOfflinePlayer(playerName).isOnline())
-        {
-            s.getPlayer(playerName).sendMessage(message);
-        }
-
-        //additionally if they're a bridge client
-        if (haveBridge)
-        {
-            shinyBridgeAPI.sendToClient(playerName, message);
-        }
-    }
-
-    public boolean isOnlineAnywhere(String playerName)
-    {
-        if (haveBridge)
-        {
-            return shinyBridgeAPI.isOnlineServerPlusClients(playerName);
-        }
-        else
-        {
-            return s.getOfflinePlayer(playerName).isOnline();
-        }
-    }
-
-
-
-    /* MB Toggle Related */
-
-    public ModChatHandler getModChatHandler()
-    {
-        return modChatHandler;
-    }
-
-    /* Returns true if the event should be cancelled. But do not use e.setCancelled(handleChatEvent) as we don't
-    * necessarily want to set it to false (other plugins might have set it to true previously). */
-    public void handleChatEvent(AsyncPlayerChatEvent e)
-    {
-        if (e.isCancelled())
-        {
-            return;
-        }
-
-        Player player = e.getPlayer();
-
-        //if player's a mod and they do not have modChat toggled off
-        if (modChatHandler.defaultIsModChat(e.getPlayer()))
-        {
-            if (e.getMessage().startsWith(ModChatHandler.MOD_BYPASS_CHAR))
-            {
-                e.setMessage(e.getMessage().substring(1));
-            }
-            else
-            {
-                modChatHandler.newModChatEvent(e);
-                e.setCancelled(true);
-            }
-        }
+        return sentence;
     }
 }

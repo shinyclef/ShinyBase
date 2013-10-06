@@ -30,7 +30,6 @@ class PlayerListManager
         playerlist = getConfigPlayerlist().getStringList("players");
     }
 
-
     public void reloadConfigPlayerlist()
     {
         //if file var is null (like at startup), ...
@@ -62,7 +61,8 @@ class PlayerListManager
         return ymlplayerlist;
     }
 
-    public void saveConfigPlayerlist() {
+    public void saveConfigPlayerlist()
+    {
         if (ymlplayerlist == null || fileplayerlist == null)
         {
             return;
